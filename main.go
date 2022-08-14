@@ -7,8 +7,9 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
 )
+
+var logtxt string
 
 func main() {
 	pwd, err := os.Getwd()
@@ -30,13 +31,13 @@ func main() {
 	if (len(oldStr) > 0) && (oldStr != newStr) {
 		fmt.Println("change start")
 		ChangeTxtToPath(pwd+"/files", oldStr, newStr)
+		logSave()
 	} else {
 		fmt.Println("none change params")
 	}
 }
 
 func ChangeTxtToPath(path, oldStr, newStr string) {
-	logfile := time.Now().Format("2006-01-02T15-04-05")
 	paths := listDirByReadDir(path)
 	fmt.Println(path)
 	fmt.Println(fmt.Sprintf("files count = %d", len(paths)))
@@ -54,31 +55,31 @@ func ChangeTxtToPath(path, oldStr, newStr string) {
 			f.Close()
 			if strings.Contains(fileTxt, oldStr) {
 				if os.Remove(paths[i]) != nil {
-					logWrite("File "+paths[i]+" don`t delete\n", logfile)
+					logWrite("File " + paths[i] + " don`t delete\n")
 				}
 				_, err := os.Create(paths[i])
 				if err != nil {
-					logWrite("File "+paths[i]+" don`t create\n", logfile)
+					logWrite("File " + paths[i] + " don`t create\n")
 				} else {
 					f, err := os.OpenFile(paths[i], os.O_WRONLY, 0600)
 					if err == nil {
 						_, err = f.WriteString(strings.Replace(fileTxt, oldStr, newStr, -1))
 						if err != nil {
-							logWrite("File "+paths[i]+" don`t write\n", logfile)
+							logWrite("File " + paths[i] + " don`t write\n")
 							fmt.Println("File " + paths[i] + " don`t save")
 						} else {
-							logWrite(paths[i]+"\n"+logText(fileTxt, oldStr, newStr), logfile)
+							logWrite(paths[i] + "\n" + logText(fileTxt, oldStr, newStr))
 							fmt.Println("File " + paths[i] + " save")
 						}
 					} else {
-						logWrite("File "+paths[i]+" don`t write\n", logfile)
+						logWrite("File " + paths[i] + " don`t write\n")
 						fmt.Println("File " + paths[i] + " don`t save")
 					}
 					f.Close()
 				}
 			}
 		} else {
-			logWrite("File "+paths[i]+" don`t read\n", logfile)
+			logWrite("File " + paths[i] + " don`t read\n")
 			fmt.Println("File " + paths[i] + " don`t read")
 		}
 		f.Close()
@@ -99,17 +100,20 @@ func listDirByReadDir(path string) []string {
 	return result
 }
 
-func logWrite(text, fileName string) {
+func logWrite(text string) {
+	logtxt += text + "\n"
+}
+
+func logSave() {
 	pwd, err := os.Getwd()
 	if err == nil {
-		os.MkdirAll(pwd+"/log", 0777)
-		path := pwd + "/log/" + fileName + ".log"
+		path := pwd + "/files/" + "~changes.log"
 		if _, err := os.Stat(path); err != nil {
 			os.Create(path)
 		}
 		log, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0600)
 		if err == nil {
-			log.WriteString(text)
+			log.WriteString(logtxt)
 		}
 		log.Close()
 	}
