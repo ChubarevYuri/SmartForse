@@ -11,23 +11,35 @@ import (
 )
 
 func main() {
-	fmt.Print("Directory path: ")
-	var path string
-	fmt.Scanln(&path)
-	fmt.Print("Old text: ")
-	var oldStr string
-	fmt.Scanln(&oldStr)
-	fmt.Print("New text: ")
-	var newStr string
-	fmt.Scanln(&newStr)
-	changeTxtToPath(path, oldStr, newStr)
-	fmt.Println("Finish.")
-	fmt.Scanln()
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err.Error())
+	}
+	oldStr, erro := os.LookupEnv("old")
+	if !erro {
+		fmt.Println("err old env path")
+		panic("not env old")
+	}
+	fmt.Println("[old] = " + oldStr)
+	newStr, errn := os.LookupEnv("new")
+	if !errn {
+		fmt.Println("err new env path")
+		panic("not env new")
+	}
+	fmt.Println("[new] = " + newStr)
+	if (len(oldStr) > 0) && (oldStr != newStr) {
+		fmt.Println("change start")
+		ChangeTxtToPath(pwd+"/files", oldStr, newStr)
+	} else {
+		fmt.Println("none change params")
+	}
 }
 
-func changeTxtToPath(path, oldStr, newStr string) {
+func ChangeTxtToPath(path, oldStr, newStr string) {
 	logfile := time.Now().Format("2006-01-02T15-04-05")
 	paths := listDirByReadDir(path)
+	fmt.Println(path)
+	fmt.Println(fmt.Sprintf("files count = %d", len(paths)))
 	for i := range paths {
 		f, err := os.Open(paths[i])
 		if err == nil {
@@ -67,7 +79,7 @@ func changeTxtToPath(path, oldStr, newStr string) {
 }
 
 func listDirByReadDir(path string) []string {
-	lst, err := ioutil.ReadDir(path)
+	var lst, err = ioutil.ReadDir(path)
 	var result []string
 	if err != nil {
 		return nil
@@ -97,7 +109,7 @@ func logWrite(text, fileName string) {
 }
 
 func logText(fileTxt, oldStr, newStr string) string {
-	changetxt := "[" + oldStr + "->" + newStr + "]"
+	var mytxt = "[" + oldStr + "->" + newStr + "]"
 	result := ""
 	for true {
 		i := strings.Index(fileTxt, oldStr)
@@ -109,7 +121,7 @@ func logText(fileTxt, oldStr, newStr string) string {
 			} else if i > 0 {
 				result += fileTxt[:i]
 			}
-			result += changetxt
+			result += mytxt
 			if i+len(oldStr)+10 < len(fileTxt) {
 				result += fileTxt[i+len(oldStr) : i+len(oldStr)+10]
 			} else if i+len(oldStr) < len(fileTxt) {
