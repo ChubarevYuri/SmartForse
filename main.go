@@ -41,6 +41,7 @@ func ChangeTxtToPath(path, oldStr, newStr string) {
 	fmt.Println(path)
 	fmt.Println(fmt.Sprintf("files count = %d", len(paths)))
 	for i := range paths {
+		fmt.Println(paths[i])
 		f, err := os.Open(paths[i])
 		if err == nil {
 			wr := bytes.Buffer{}
@@ -49,6 +50,7 @@ func ChangeTxtToPath(path, oldStr, newStr string) {
 				wr.WriteString(sc.Text())
 			}
 			fileTxt := wr.String()
+			fmt.Println("File " + paths[i] + " read: " + fileTxt)
 			f.Close()
 			if strings.Contains(fileTxt, oldStr) {
 				if os.Remove(paths[i]) != nil {
@@ -63,16 +65,21 @@ func ChangeTxtToPath(path, oldStr, newStr string) {
 						_, err = f.WriteString(strings.Replace(fileTxt, oldStr, newStr, -1))
 						if err != nil {
 							logWrite("File "+paths[i]+" don`t write\n", logfile)
+							fmt.Println("File " + paths[i] + " don`t save")
 						} else {
 							logWrite(paths[i]+"\n"+logText(fileTxt, oldStr, newStr), logfile)
+							fmt.Println("File " + paths[i] + " save")
 						}
 					} else {
 						logWrite("File "+paths[i]+" don`t write\n", logfile)
+						fmt.Println("File " + paths[i] + " don`t save")
 					}
+					f.Close()
 				}
 			}
 		} else {
 			logWrite("File "+paths[i]+" don`t read\n", logfile)
+			fmt.Println("File " + paths[i] + " don`t read")
 		}
 		f.Close()
 	}
@@ -86,7 +93,7 @@ func listDirByReadDir(path string) []string {
 	}
 	for _, val := range lst {
 		if !val.IsDir() {
-			result = append(result, path+"\\"+val.Name())
+			result = append(result, path+"/"+val.Name())
 		}
 	}
 	return result
@@ -95,8 +102,8 @@ func listDirByReadDir(path string) []string {
 func logWrite(text, fileName string) {
 	pwd, err := os.Getwd()
 	if err == nil {
-		os.MkdirAll(pwd+"\\log", 0777)
-		path := pwd + "\\log\\" + fileName + ".log"
+		os.MkdirAll(pwd+"/log", 0777)
+		path := pwd + "/log/" + fileName + ".log"
 		if _, err := os.Stat(path); err != nil {
 			os.Create(path)
 		}
